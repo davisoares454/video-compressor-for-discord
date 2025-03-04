@@ -1,5 +1,8 @@
 name: Python Package Build & Release
 
+permissions:
+  contents: write  # Allow pushing tags and creating releases
+
 on:
   push:
     branches:
@@ -114,6 +117,8 @@ jobs:
           git config --global user.email "github-actions@github.com"
           git tag ${{ env.NEW_TAG }}
           git push origin ${{ env.NEW_TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
