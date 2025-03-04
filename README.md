@@ -1,116 +1,106 @@
-# Video Compressor For Discord
+# VideoCompressorForDiscord
 
-**VideoCompressorForDiscord** is a Windows application that compresses and transforms videos to match the max file size for Discord. It uses FFmpeg and FFprobe to perform two-pass encoding—trimming the video to the final 30 seconds and converting it using preset parameters (e.g., 2750k bitrate, 48fps, 1280x720 resolution). The GUI, built with Tkinter, allows you to select an input video, specify an output file, and displays a progress bar during encoding.
+Easily compress and convert videos for Discord using **VideoCompressorForDiscord**! This simple Windows app trims your video to the final 30 seconds and optimizes it for Discord.
 
-## Prerequisites
+It is designed specifically for **non-Nitro** users who need their videos to be **10MB or less** to send them in Discord chats. The user-friendly interface lets you select a video, choose an output file, and track progress with a status bar.
 
-- **Operating System**: Windows  
-- **Python**: Python 3.x (3.8+ is recommended)  
-- **FFmpeg/FFprobe**: System-installed versions must be available in your `PATH`. Alternatively, update the helper functions in `app.py` to point to their locations if they are not in `PATH`.  
-- **Tkinter**: Usually included with most Python distributions on Windows.  
+---
 
-## Installing FFmpeg
+## 🛠️ How to Install
 
-If you do not have FFmpeg and FFprobe installed, follow these steps:
+### 1️⃣ Install Python
+You need **Python 3.8 or newer**. Download and install it from:
+👉 [Python Official Site](https://www.python.org/downloads/)
 
-1. Download the latest FFmpeg build from [FFmpeg's official site](https://ffmpeg.org/download.html).
-2. Extract the downloaded file to a convenient location (e.g., `C:\ffmpeg`).
-3. Add the `bin` directory to your system `PATH`:
-   - Open **Control Panel** > **System** > **Advanced system settings**.
-   - Click on **Environment Variables**.
-   - Under **System Variables**, find `Path`, select it, and click **Edit**.
-   - Click **New**, then enter the path to the FFmpeg `bin` directory (e.g., `C:\ffmpeg\bin`).
-   - Click **OK** to save the changes.
-4. Verify installation by running the following command in Command Prompt:
-   ```bash
-   ffmpeg -version
+Make sure to check **"Add Python to PATH"** during installation!
+
+### 2️⃣ Install FFmpeg
+FFmpeg is required for video processing. Follow these steps:
+
+#### **🚀 AUTOMATIC INSTALLATION (Using Chocolatey)**
+Chocolatey is a package manager for Windows that makes installing software easy.
+
+1. **Install Chocolatey:**
+   - Open **PowerShell** as Administrator and run:
+     ```powershell
+     Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+     ```
+   - Close and reopen PowerShell after installation.
+
+2. **Install FFmpeg using Chocolatey:**
+   ```powershell
+   choco install ffmpeg
    ```
 
-## Local Setup
+3. **Verify installation:**
+   ```powershell
+   ffmpeg -version
+   ```
+   If FFmpeg is installed correctly, you'll see version details in the terminal.
 
-### Clone or Download the Repository
+#### **🔧 MANUAL INSTALLATION**
 
-Open a terminal, navigate to your desired folder, and run:
+1. Download FFmpeg from [FFmpeg Official Site](https://ffmpeg.org/download.html).
+2. Extract the downloaded file (e.g., to `C:\ffmpeg`).
+3. Add the `bin` folder to your system PATH:
+   - Open **Control Panel** > **System** > **Advanced system settings**.
+   - Click **Environment Variables**.
+   - Find `Path` under **System Variables** and click **Edit**.
+   - Click **New** and add `C:\ffmpeg\bin`.
+   - Click **OK** to save.
+4. Verify installation:
+   - Open **PowerShell**.
+   - Execute this command:
+     ```powershell
+     ffmpeg -version
+     ```
+   If FFmpeg is installed correctly, you'll see version details in the terminal.
 
-```bash
-git clone https://github.com/davisoares454/video-compressor-for-discord.git
-cd video-compressor-for-discord
-```
+---
 
-### Create a Virtual Environment
+## ▶️ How to Use
 
-```bash
-python -m venv venv
-```
+### 1️⃣ Download the Application
+1. Go to the **[Releases](https://github.com/davisoares454/video-compressor-for-discord/releases)** page of this repository.
+2. Download the latest `.zip` file.
+3. Extract the contents to a folder of your choice.
 
-### Activate the Virtual Environment
+### 2️⃣ Run the Application
+1. Open the extracted folder.
+2. Double-click **`VideoCompressorForDiscord.exe`**.
+3. The application interface will open.
 
-**On Windows:**
+### 3️⃣ Compress a Video
+1. **Select an input video** – Choose the video you want to compress.
+2. **Choose an output location** – Select where to save the new video.
+3. **Start encoding** – Click **"Start Encoding"** and wait for the process to complete.
 
-```cmd
-venv\Scripts\activate
-```
+---
 
-**On macOS/Linux:**
-
-```bash
-source venv/bin/activate
-```
-
-### Install Required Packages
-
-Install TK and any other necessary packages using pip:
-
-```bash
-pip install tk
-pip install pyinstaller
-```
-
-## Running the Application Locally
-
-With your virtual environment activated, run:
-
-```bash
-python app.py
-```
-
-This will launch the **VideoCompressorForDiscord** GUI. From the interface, you can:
-
-- **Select Input Video**: Choose the video you wish to compress.
-- **Select Output File**: Specify the output file path.
-- **Start Encoding**: Click the "Start Encoding" button to begin processing.
-
-## Building the Application
-
-To create a distributable version of your app without an accompanying console window, use the following PyInstaller command:
-
+## 🏗️ How to Build an Executable (For Developers)
+If you want to create a standalone version of the app:
 ```bash
 pyinstaller --onedir --windowed app.py --name VideoCompressorForDiscord
 ```
+This will create a folder `dist/VideoCompressorForDiscord`, containing everything needed to run the app.
 
-### Explanation:
+---
 
-- `--onedir`: Creates a folder containing the executable and all dependent files.
-- `--windowed`: Prevents a console window from opening when the app runs.
-- `--name VideoCompressorForDiscord`: Sets the name of the output folder/executable.
+## 🔧 Troubleshooting
 
-After running this command, you will find a folder named `VideoCompressorForDiscord` in the `dist` directory. This folder contains the executable along with the necessary files to run your application.
+- **FFmpeg Not Found?**
+  Ensure it’s installed and added to PATH. Run `ffmpeg -version` to verify.
 
-## Usage Tips & Troubleshooting
+- **Antivirus Warnings?**
+  If the built executable triggers warnings, disable UPX compression:
+  ```bash
+  pyinstaller --noupx --onedir --windowed app.py --name VideoCompressorForDiscord
+  ```
 
-### FFmpeg/FFprobe Availability:
-Ensure that both executables are installed on your system and available via the system `PATH`. If not, update the helper functions (`get_ffmpeg_executable()` and `get_ffprobe_executable()`) in `app.py` to point to their absolute paths.
+---
 
-### Suppressing Console Windows:
-When calling FFmpeg/FFprobe via `subprocess.Popen`, the code sets the `creationflags` parameter to `subprocess.CREATE_NO_WINDOW` on Windows to prevent additional terminal windows from opening.
-
-### Antivirus/Defender Alerts:
-If the built executable triggers warnings, consider disabling UPX compression using the `--noupx` flag or signing your executable with a valid code signing certificate.
-
-## License
-
+## 📜 License
 This project is licensed under the **MIT License**. See the `LICENSE` file for details.
 
-## Acknowledgments
-
-Special thanks to the contributors and the FFmpeg community for the tools and libraries that made this project possible.
+## ❤️ Acknowledgments
+Thanks to the contributors and the FFmpeg community for their incredible tools!

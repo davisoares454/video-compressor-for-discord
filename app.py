@@ -89,7 +89,7 @@ def run_ffmpeg(pass_num, input_file, output_file, target_duration, trim_start, u
         "-preset", "veryfast",
         "-profile:v", "main",
         "-level", "4.0",
-        "-b:v", "2750k",
+        "-b:v", "2600k",
         "-r", "48",
         "-vf", "scale=1280:720",
         "-movflags", "+faststart",

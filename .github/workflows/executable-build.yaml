@@ -1,0 +1,121 @@
+name: Python Package Build & Release
+
+on:
+  push:
+    branches:
+      - main  # Runs the build process on every commit to main
+
+  workflow_dispatch:  # Manual trigger for tagging & release
+    inputs:
+      version_type:
+        description: "Version type (major, minor, patch)"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tk pyinstaller
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Generate Executable with PyInstaller
+        run: |
+          pyinstaller --onedir --windowed app.py --name VideoCompressorForDiscord
+
+      - name: Create zip
+        run: |
+          zip -r VideoCompressorForDiscord.zip dist/VideoCompressorForDiscord
+
+      - name: Upload ZIP as an Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VideoCompressorForDiscord
+          path: VideoCompressorForDiscord.zip
+
+  release:
+    if: github.event_name == 'workflow_dispatch'  # Runs only when manually triggered
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get latest tag
+        id: get-latest-tag
+        run: echo "TAG=$(git describe --tags --abbrev=0 || echo v0.1.0)" >> $GITHUB_ENV
+
+      - name: Determine New Version
+        id: new-version
+        run: |
+          OLD_TAG=${{ env.TAG }}
+          if [[ "$OLD_TAG" == "v0.1.0" && "$(git tag)" == "" ]]; then
+            NEW_TAG="v0.1.0"
+          else
+            VERSION=$(echo $OLD_TAG | sed 's/v//')
+            MAJOR=$(echo $VERSION | cut -d. -f1)
+            MINOR=$(echo $VERSION | cut -d. -f2)
+            PATCH=$(echo $VERSION | cut -d. -f3)
+
+            if [ "${{ github.event.inputs.version_type }}" == "major" ]; then
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+            elif [ "${{ github.event.inputs.version_type }}" == "minor" ]; then
+              MINOR=$((MINOR + 1))
+              PATCH=0
+            else
+              PATCH=$((PATCH + 1))
+            fi
+
+            NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+          fi
+
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+          echo "New version: $NEW_TAG"
+
+      - name: Download Built Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: VideoCompressorForDiscord
+          path: .
+
+      - name: Rename ZIP file with version
+        run: mv VideoCompressorForDiscord.zip VideoCompressorForDiscord-${{ env.NEW_TAG }}.zip
+
+      - name: Create and Push New Tag
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git tag ${{ env.NEW_TAG }}
+          git push origin ${{ env.NEW_TAG }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.NEW_TAG }}
+          name: Release ${{ env.NEW_TAG }}
+          body: "New release: ${{ env.NEW_TAG }}"
+          draft: false
+          prerelease: false
+          files: VideoCompressorForDiscord-${{ env.NEW_TAG }}.zip
