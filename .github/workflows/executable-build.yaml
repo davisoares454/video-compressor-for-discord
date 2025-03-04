@@ -46,7 +46,7 @@ jobs:
       - name: Upload ZIP as an Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: VideoCompressorForDiscord.zip
+          name: VideoCompressorForDiscord
           path: dist/VideoCompressorForDiscord
 
   release:
