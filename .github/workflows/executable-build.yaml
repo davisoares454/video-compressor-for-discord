@@ -43,15 +43,11 @@ jobs:
         run: |
           pyinstaller --onedir --windowed app.py --name VideoCompressorForDiscord
 
-      - name: Create zip (only necessary files)
-        run: |
-          Compress-Archive -Path dist/VideoCompressorForDiscord/* -DestinationPath VideoCompressorForDiscord.zip
-
       - name: Upload ZIP as an Artifact
         uses: actions/upload-artifact@v4
         with:
           name: VideoCompressorForDiscord
-          path: VideoCompressorForDiscord.zip
+          path: dist/VideoCompressorForDiscord
 
   release:
     if: github.event_name == 'workflow_dispatch'  # Runs only when manually triggered
