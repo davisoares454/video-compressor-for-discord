@@ -43,9 +43,9 @@ jobs:
         run: |
           pyinstaller --onedir --windowed app.py --name VideoCompressorForDiscord
 
-      - name: Create zip
+      - name: Create zip (only contents)
         run: |
-          zip -r VideoCompressorForDiscord.zip dist/VideoCompressorForDiscord
+          cd dist/VideoCompressorForDiscord && zip -r ../../VideoCompressorForDiscord.zip .
 
       - name: Upload ZIP as an Artifact
         uses: actions/upload-artifact@v4
