@@ -41,7 +41,7 @@ jobs:
 
       - name: Generate Executable with PyInstaller
         run: |
-          pyinstaller --onedir --windowed app.py --name VideoCompressorForDiscord
+          pyinstaller --onedir --noupx --windowed app.py --name VideoCompressorForDiscord
 
       - name: Upload ZIP as an Artifact
         uses: actions/upload-artifact@v4

@@ -80,7 +80,7 @@ Chocolatey is a package manager for Windows that makes installing software easy.
 ## 🏗️ How to Build an Executable (For Developers)
 If you want to create a standalone version of the app:
 ```bash
-pyinstaller --onedir --windowed app.py --name VideoCompressorForDiscord
+pyinstaller --onedir --noupx --windowed app.py --name VideoCompressorForDiscord
 ```
 This will create a folder `dist/VideoCompressorForDiscord`, containing everything needed to run the app.
 
