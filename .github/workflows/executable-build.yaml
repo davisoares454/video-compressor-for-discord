@@ -94,13 +94,19 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: VideoCompressorForDiscord
-          path: .
+          path: build_artifact  # Store in a separate folder
 
-      - name: list files
+      - name: List downloaded files
+        run: ls -la build_artifact
+
+      - name: Repackage files into a versioned ZIP
         run: |
-          ls -la
-      - name: Rename ZIP file with version
-        run: mv VideoCompressorForDiscord.zip VideoCompressorForDiscord-${{ env.NEW_TAG }}.zip
+          cd build_artifact
+          zip -r ../VideoCompressorForDiscord-${{ env.NEW_TAG }}.zip .
+          cd ..
+
+      - name: Verify final ZIP
+        run: ls -la VideoCompressorForDiscord-${{ env.NEW_TAG }}.zip
 
       - name: Create and Push New Tag
         run: |
