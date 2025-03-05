@@ -59,40 +59,45 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensure full git history is fetched
 
       - name: Fetch all tags
         run: git fetch --tags
 
       - name: Get latest tag
         id: get-latest-tag
+        shell: pwsh
         run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "TAG=$LATEST_TAG" >> $GITHUB_ENV
+          $latestTag = git describe --tags --abbrev=0 2>$null
+          if (-not $latestTag) { $latestTag = "v0.0.0" }
+          echo "TAG=$latestTag" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Determine New Version
         id: new-version
+        shell: pwsh
         run: |
-          OLD_TAG=${{ env.TAG }}
-          VERSION=$(echo $OLD_TAG | sed 's/v//')
-          MAJOR=$(echo $VERSION | cut -d. -f1)
-          MINOR=$(echo $VERSION | cut -d. -f2)
-          PATCH=$(echo $VERSION | cut -d. -f3)
+          $oldTag = "${{ env.TAG }}"
+          $version = $oldTag -replace "v",""
+          $parts = $version -split "\."
+          $major = [int]$parts[0]
+          $minor = [int]$parts[1]
+          $patch = [int]$parts[2]
 
-          if [ "${{ github.event.inputs.version_type }}" == "major" ]; then
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-          elif [ "${{ github.event.inputs.version_type }}" == "minor" ]; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          else
-            PATCH=$((PATCH + 1))
-          fi
+          if ("${{ github.event.inputs.version_type }}" -eq "major") {
+            $major += 1
+            $minor = 0
+            $patch = 0
+          } elseif ("${{ github.event.inputs.version_type }}" -eq "minor") {
+            $minor += 1
+            $patch = 0
+          } else {
+            $patch += 1
+          }
 
-          NEW_TAG="v$MAJOR.$MINOR.$PATCH"
-
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
-          echo "Determined new version: $NEW_TAG"
+          $newTag = "v$major.$minor.$patch"
+          echo "NEW_TAG=$newTag" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "New version determined: $newTag"
 
       - name: Download Built Artifact
         uses: actions/download-artifact@v4
@@ -112,12 +117,13 @@ jobs:
       - name: Verify final ZIP
         run: ls -la VideoCompressorForDiscord-${{ env.NEW_TAG }}.zip
 
-      - name: Create and Push New Tag
+      - name: Create and push new tag
+        shell: pwsh
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git tag ${{ env.NEW_TAG }}
-          git push origin ${{ env.NEW_TAG }}
+          git tag "${{ env.NEW_TAG }}"
+          git push origin "${{ env.NEW_TAG }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
 
