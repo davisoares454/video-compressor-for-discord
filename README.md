@@ -1,10 +1,14 @@
-# VideoCompressorForDiscord
+<h1 align="center">Video Compressor for Discord<br />
+<div align="center" style="margin-top: 10px;">
+<a href="https://github.com/davisoares454/video-compressor-for-discord"><img src="https://github.com/davisoares454/video-compressor-for-discord/raw/main/icon.png" title="Logo" style="max-width:100%;" width="128" /></a>
+</div>
+<div align="center">
+
+</div></h1>
 
 Easily compress and convert videos for Discord using **VideoCompressorForDiscord**! This simple Windows app trims your video to the final 30 seconds and optimizes it for Discord.
 
 It is designed specifically for **non-Nitro** users who need their videos to be **10MB or less** to send them in Discord chats. The user-friendly interface lets you select a video, choose an output file, and track progress with a status bar.
-
----
 
 ## 🛠️ How to Install
 
@@ -56,8 +60,6 @@ Chocolatey is a package manager for Windows that makes installing software easy.
      ```
    If FFmpeg is installed correctly, you'll see version details in the terminal.
 
----
-
 ## ▶️ How to Use
 
 ### 1️⃣ Download the Application
@@ -75,29 +77,18 @@ Chocolatey is a package manager for Windows that makes installing software easy.
 2. **Choose an output location** – Select where to save the new video.
 3. **Start encoding** – Click **"Start Encoding"** and wait for the process to complete.
 
----
 
 ## 🏗️ How to Build an Executable (For Developers)
 If you want to create a standalone version of the app:
 ```bash
-pyinstaller --onedir --noupx --windowed app.py --name VideoCompressorForDiscord
+pyinstaller --onedir --noupx --icon=icon.png --add-data "icon.png;." --windowed app.py --name VideoCompressorForDiscord
 ```
 This will create a folder `dist/VideoCompressorForDiscord`, containing everything needed to run the app.
-
----
 
 ## 🔧 Troubleshooting
 
 - **FFmpeg Not Found?**
   Ensure it’s installed and added to PATH. Run `ffmpeg -version` to verify.
-
-- **Antivirus Warnings?**
-  If the built executable triggers warnings, disable UPX compression:
-  ```bash
-  pyinstaller --noupx --onedir --windowed app.py --name VideoCompressorForDiscord
-  ```
-
----
 
 ## 📜 License
 This project is licensed under the **MIT License**. See the `LICENSE` file for details.

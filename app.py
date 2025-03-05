@@ -1,9 +1,29 @@
 import tkinter as tk
+import webbrowser
 from tkinter import ttk, filedialog, messagebox
+from PIL import Image, ImageTk
 import subprocess
 import threading
 import sys
 import os
+
+def resource_path(relative_path):
+    """ Get absolute path to resource (for PyInstaller). """
+    if hasattr(sys, "_MEIPASS"):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.abspath(".")
+
+    # DEBUG: List files in the extracted folder
+    print("\n🔍 Debugging File Paths:")
+    print("Looking for files in:", base_path)
+    try:
+        print("Files in directory:", os.listdir(base_path))
+    except Exception as e:
+        print("Error listing directory:", e)
+
+    # Return the absolute path to the file
+    return os.path.join(base_path, relative_path)
 
 def cleanup_default_pass_logs():
     # Default filenames FFmpeg uses when -passlogfile is not specified.
@@ -154,33 +174,67 @@ def encode_video(input_file, output_file, progress_callback):
     run_ffmpeg(1, input_file, output_file, target_duration, trim_start, progress_callback)
     run_ffmpeg(2, input_file, output_file, target_duration, trim_start, progress_callback)
 
+
 class VideoCompressorForDiscordApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Video Compressor")
+        self.root.title("Video Compressor for Discord")
+        self.root.geometry("330x250")
+        self.root.resizable(False, False)
+
+        # Load the icon using the correct path
+        icon_path = resource_path("icon.png")  # Use helper function
+        print(f"\n🔎 Checking icon path: {icon_path}")
+        if not os.path.exists(icon_path):
+            print("❌ ERROR: icon.png not found in the bundle!")
+            messagebox.showerror("Error", f"Missing icon.png at {icon_path}\nEnsure it's included with --add-data.")
+
+        self.icon = tk.PhotoImage(file=icon_path)
+        self.root.iconphoto(False, self.icon)
+
         self.input_file = ""
         self.output_file = ""
         self.create_widgets()
 
     def create_widgets(self):
-        self.input_button = ttk.Button(self.root, text="Select Input Video", command=self.select_input)
-        self.input_button.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        frame = ttk.Frame(self.root, padding=10)
+        frame.pack(expand=True, fill="both")
 
-        self.input_label = ttk.Label(self.root, text="No input file selected")
-        self.input_label.grid(row=0, column=1, padx=10, pady=10, sticky="w")
+        # Title
+        title_label = ttk.Label(frame, text="Video Compressor for Discord", font=("Arial", 14, "bold"))
+        title_label.grid(row=0, column=0, columnspan=2, pady=(5, 2))
 
-        self.output_button = ttk.Button(self.root, text="Select Output File", command=self.select_output)
-        self.output_button.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
+        # Description
+        description_label = ttk.Label(frame, text="Easily compress videos to share on Discord", font=("Arial", 10))
+        description_label.grid(row=1, column=0, columnspan=2, pady=(0, 10))
 
-        self.output_label = ttk.Label(self.root, text="No output file selected")
-        self.output_label.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        # Input selection
+        self.input_button = ttk.Button(frame, text="Select Input", command=self.select_input, width=15)
+        self.input_button.grid(row=2, column=0, padx=5, pady=5, sticky="w")
 
+        self.input_label = ttk.Label(frame, text="No file selected", anchor="w", width=30)
+        self.input_label.grid(row=2, column=1, padx=5, pady=5, sticky="w")
+
+        # Output selection
+        self.output_button = ttk.Button(frame, text="Select Output", command=self.select_output, width=15)
+        self.output_button.grid(row=3, column=0, padx=5, pady=5, sticky="w")
+
+        self.output_label = ttk.Label(frame, text="No file selected", anchor="w", width=30)
+        self.output_label.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+
+        # Progress bar
         self.progress_var = tk.DoubleVar()
-        self.progress_bar = ttk.Progressbar(self.root, variable=self.progress_var, maximum=100)
-        self.progress_bar.grid(row=2, column=0, columnspan=2, padx=10, pady=20, sticky="ew")
+        self.progress_bar = ttk.Progressbar(frame, variable=self.progress_var, maximum=100)
+        self.progress_bar.grid(row=4, column=0, columnspan=2, padx=5, pady=10, sticky="ew")
 
-        self.start_button = ttk.Button(self.root, text="Start Encoding", command=self.start_encoding)
-        self.start_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+        # Start encoding button
+        self.start_button = ttk.Button(frame, text="Start Encoding", command=self.start_encoding, width=20)
+        self.start_button.grid(row=5, column=0, columnspan=2, padx=5, pady=5)
+
+        # About hyperlink-style text
+        self.about_label = tk.Label(frame, text="About", fg="blue", cursor="hand2", font=("Arial", 10, "underline"))
+        self.about_label.grid(row=6, column=0, columnspan=2, pady=10, sticky="s")
+        self.about_label.bind("<Button-1>", lambda e: self.open_about_window())
 
     def select_input(self):
         file_path = filedialog.askopenfilename(title="Select Video File", filetypes=[("Video Files", "*.mp4 *.mkv *.avi *.mov"), ("All Files", "*.*")])
@@ -213,14 +267,50 @@ class VideoCompressorForDiscordApp:
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
         finally:
-            # Clean up default FFmpeg two-pass log files
             cleanup_default_pass_logs()
             self.root.after(0, lambda: self.start_button.config(state="normal"))
             self.root.after(0, lambda: self.input_button.config(state="normal"))
             self.root.after(0, lambda: self.output_button.config(state="normal"))
 
+    def open_about_window(self):
+        """Opens the About window with an image and GitHub link."""
+        about_win = tk.Toplevel(self.root)
+        about_win.title("About")
+        about_win.geometry("220x210")
+        about_win.resizable(False, False)
+
+        icon_path = resource_path("icon.png")  # Get the icon path
+        print(f"\n🔎 Checking About window image path: {icon_path}")
+        if not os.path.exists(icon_path):
+            print("❌ ERROR: icon.png not found!")
+            messagebox.showerror("Error", f"Missing icon.png at {icon_path}")
+
+        # Load and resize image
+        try:
+            original_image = Image.open(icon_path)  
+            resized_image = original_image.resize((140, 140), Image.LANCZOS)  
+            img = ImageTk.PhotoImage(resized_image)
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not load image: {e}")
+            print(f"❌ Image loading error: {e}")
+            return
+
+        # Display image
+        img_label = ttk.Label(about_win, image=img)
+        img_label.image = img  
+        img_label.pack(pady=5)
+
+        # Repository text
+        text_label_first = ttk.Label(about_win, text="Original repository:", font=("Arial", 10, "bold"))
+        text_label_first.pack()
+
+        # GitHub hyperlink-style label
+        repo_link = "https://github.com/davisoares454/video-compressor-for-discord"
+        github_label = tk.Label(about_win, text="video-compressor-for-discord", fg="blue", cursor="hand2", font=("Arial", 10, "underline"))
+        github_label.pack()
+        github_label.bind("<Button-1>", lambda e: webbrowser.open_new(repo_link))  
+
 if __name__ == "__main__":
     root = tk.Tk()
-    root.title("VideoCompressorForDiscord")
     app = VideoCompressorForDiscordApp(root)
     root.mainloop()

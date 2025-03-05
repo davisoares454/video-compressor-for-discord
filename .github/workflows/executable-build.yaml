@@ -39,12 +39,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install tk pyinstaller
+          python -m pip install tk pyinstaller pillow
           if (Test-Path requirements.txt) { pip install -r requirements.txt }
 
       - name: Generate Executable with PyInstaller
         run: |
-          pyinstaller --onedir --noupx --windowed app.py --name VideoCompressorForDiscord
+          pyinstaller --onedir --windowed --noupx --icon=icon.png --add-data "icon.png;." app.py --name VideoCompressorForDiscord
 
       - name: Upload ZIP as an Artifact
         uses: actions/upload-artifact@v4
