@@ -60,38 +60,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Fetch all tags
+        run: git fetch --tags
+
       - name: Get latest tag
         id: get-latest-tag
-        run: echo "TAG=$(git describe --tags --abbrev=0 || echo v0.1.0)" >> $GITHUB_ENV
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "TAG=$LATEST_TAG" >> $GITHUB_ENV
 
       - name: Determine New Version
         id: new-version
         run: |
           OLD_TAG=${{ env.TAG }}
-          if [[ "$OLD_TAG" == "v0.1.0" && "$(git tag)" == "" ]]; then
-            NEW_TAG="v0.1.0"
+          VERSION=$(echo $OLD_TAG | sed 's/v//')
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f2)
+          PATCH=$(echo $VERSION | cut -d. -f3)
+
+          if [ "${{ github.event.inputs.version_type }}" == "major" ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif [ "${{ github.event.inputs.version_type }}" == "minor" ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
           else
-            VERSION=$(echo $OLD_TAG | sed 's/v//')
-            MAJOR=$(echo $VERSION | cut -d. -f1)
-            MINOR=$(echo $VERSION | cut -d. -f2)
-            PATCH=$(echo $VERSION | cut -d. -f3)
-
-            if [ "${{ github.event.inputs.version_type }}" == "major" ]; then
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-            elif [ "${{ github.event.inputs.version_type }}" == "minor" ]; then
-              MINOR=$((MINOR + 1))
-              PATCH=0
-            else
-              PATCH=$((PATCH + 1))
-            fi
-
-            NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+            PATCH=$((PATCH + 1))
           fi
 
+          NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
-          echo "New version: $NEW_TAG"
+          echo "Determined new version: $NEW_TAG"
 
       - name: Download Built Artifact
         uses: actions/download-artifact@v4
